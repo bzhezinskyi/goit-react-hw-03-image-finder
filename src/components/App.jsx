@@ -1,16 +1,16 @@
-export const App = () => {
-  return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: 40,
-        color: '#010101'
-      }}
-    >
-      React homework template
-    </div>
-  );
-};
+// import PixabayAPI from 'PixabayAPI/PixabayAPI';
+import { Component } from 'react';
+import Searchbar from './Searchbar';
+
+export default class App extends Component {
+  onSubmitSearchbar = value => {
+    console.log(value);
+  };
+  render() {
+    return (
+      <div className="App">
+        <Searchbar onSubmit={this.onSubmitSearchbar} />
+      </div>
+    );
+  }
+}
