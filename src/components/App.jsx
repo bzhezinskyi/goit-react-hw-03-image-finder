@@ -1,43 +1,63 @@
 import { Component } from 'react';
-import axios from 'axios';
 
-import { getPixabay } from 'PixabayAPI/PixabayAPI';
+import { getPixabay } from 'services/pixabay.service';
 import Searchbar from './Searchbar';
+import ImageGallery from './ImageGallery';
+import { STATUS } from 'constants/status.constants';
+import Loader from './Loader';
 
 export default class App extends Component {
-  state = { pixabay: null, page: 1 };
-
-  onSubmitSearchbar = value => {
-    console.log(value);
+  state = {
+    pixabay: null,
+    status: STATUS.idle, // 'idle', 'loading', 'success', 'error'
+    search: '',
   };
 
-  feachData = async ({ page = 1 }) => {
+  componentDidMount() {
+    this.fetchNewGalleryList({ page: 1 });
+  }
+
+  fetchNewGalleryList = async ({ page = 1 }) => {
+    this.setState({ status: STATUS.loading });
     try {
-      // const data = await getPixabay({ page });
-      // console.dir(data);
-      await axios
-        .get(
-          'https://pixabay.com/api/?key=31260524-b97567eeef5bd60bea7834f85',
-          {
-            image_type: 'photo',
-            orientation: 'horizontal',
-            per_page: 12,
-            page,
-          }
-        )
-        .then(data => {
-          this.setState({ pixabay: data.data.hits });
-        });
+      const data = await getPixabay({ page });
+      this.setState({
+        pixabay: data.hits,
+        status: STATUS.success,
+      });
     } catch (error) {
       console.log(error);
+      this.setState({ status: STATUS.error });
+    }
+  };
+  feachNextGalleryList = async ({ page }) => {
+    this.setState({ status: STATUS.loading });
+    try {
+      const data = await getPixabay({ page });
+      this.setState(prevState => ({
+        pixabay: [prevState, ...data.hits],
+      }));
+    } catch (error) {
+      console.log(error);
+      this.setState({ status: STATUS.error });
     }
   };
 
   render() {
+    const { status, pixabay } = this.state;
     return (
       <div className="App">
-        {/* <Searchbar onSubmit={this.feachData} /> */}
-        <button type="button" onClick={this.feachData}></button>
+        <Searchbar onSubmit={this.feachData} />
+        {status === STATUS.success && <ImageGallery GalleryList={pixabay} />}
+        {(status === STATUS.loading || status === STATUS.idle) && <Loader />}
+
+        <button
+          type="button"
+          onClick={() => {
+            this.feachNextGalleryList({ page: 2 });
+          }}
+        ></button>
+        {}
       </div>
     );
   }
