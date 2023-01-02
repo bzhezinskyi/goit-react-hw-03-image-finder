@@ -57,6 +57,8 @@ export default class App extends Component {
   };
 
   handleSearch = async search => {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
     await this.setState({ search });
     await this.fetchGalleryList({
       page: 1,

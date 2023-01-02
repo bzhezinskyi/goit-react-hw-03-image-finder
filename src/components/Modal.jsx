@@ -1,5 +1,6 @@
 import { Component } from 'react';
 
+import { RemoveScroll } from 'react-remove-scroll';
 import PropTypes from 'prop-types';
 
 export default class Modal extends Component {
@@ -33,11 +34,11 @@ export default class Modal extends Component {
     } = this.props;
 
     return (
-      <div className="Overlay" onClick={this.handleClickCloseModal}>
+      <RemoveScroll className="Overlay" onClick={this.handleClickCloseModal}>
         <div className="Modal">
           <img src={largeImageURL} alt={tags} />
         </div>
-      </div>
+      </RemoveScroll>
     );
   }
 }
