@@ -12,7 +12,8 @@ export default class App extends Component {
   state = {
     modal: null,
     pixabay: null,
-    status: STATUS.idle, // 'idle', 'loading', 'success', 'error'
+    status: STATUS.idle, // 'idle', 'success', 'error'
+    loading: true,
     search: '',
     page: 1,
   };
@@ -23,7 +24,7 @@ export default class App extends Component {
   }
 
   fetchGalleryList = async ({ page, newGallery = false, search = '' }) => {
-    this.setState({ status: STATUS.loading });
+    this.setState({ loading: true });
     try {
       const data = await getPixabay({ page, q: search });
       if (data.hits.length !== 0) {
@@ -41,6 +42,7 @@ export default class App extends Component {
 
         this.setState({
           status: STATUS.success,
+          loading: false,
         });
       } else {
         this.setState({
@@ -67,14 +69,12 @@ export default class App extends Component {
     this.setState({ modal: { largeImageURL, tags } });
   };
 
-  handleCloseModal = event => {
-    if (event.target === event.currentTarget) {
-      this.setState({ modal: null });
-    }
+  handleCloseModal = () => {
+    this.setState({ modal: null });
   };
 
   render() {
-    const { status, pixabay, page, search, modal } = this.state;
+    const { status, pixabay, page, search, modal, loading } = this.state;
     return (
       <div className="App">
         <Searchbar onSearch={this.handleSearch} />
@@ -82,7 +82,7 @@ export default class App extends Component {
         {status === STATUS.success && (
           <ImageGallery GalleryList={pixabay} handleClick={this.handleClick} />
         )}
-        {status === STATUS.loading && <Loader />}
+        {loading && <Loader />}
         {status === STATUS.success && (
           <Button
             onClick={() => {
