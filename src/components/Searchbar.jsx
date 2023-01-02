@@ -1,19 +1,29 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 
 export default class Searchbar extends Component {
+  static propTypes = {
+    onSearch: PropTypes.func.isRequired,
+  };
+
   state = {
-    filter: '',
+    value: '',
   };
 
   hendleFilter = event => {
-    this.setState({ filter: event.target.value });
+    this.setState({ value: event.target.value });
   };
+
+  handleSubmit = event => {
+    event.preventDefault();
+
+    this.props.onSearch(this.state.value);
+    this.setState({ value: '' });
+  };
+
   render() {
     return (
-      <header
-        className="Searchbar"
-        onSubmit={() => this.props.onSubmit(this.state.filter)}
-      >
+      <header className="Searchbar" onSubmit={this.handleSubmit}>
         <form className="SearchForm">
           <button type="submit" className="SearchForm-button">
             <span className="SearchForm-button-label">Search</span>
@@ -24,7 +34,7 @@ export default class Searchbar extends Component {
             type="text"
             placeholder="Search images and photos"
             onChange={this.hendleFilter}
-            value={this.state.filter}
+            value={this.state.value}
           />
         </form>
       </header>
