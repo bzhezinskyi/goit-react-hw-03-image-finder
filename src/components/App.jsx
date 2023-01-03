@@ -11,63 +11,72 @@ import Modal from './Modal';
 export default class App extends Component {
   state = {
     modal: null,
-    pixabay: null,
+    pixabay: [],
     status: STATUS.idle, // 'idle', 'success', 'error'
-    loading: true,
+    loading: false,
     search: '',
     page: 1,
   };
 
-  async componentDidMount() {
-    const { page } = this.state;
-    await this.fetchGalleryList({ page, newGallery: true });
-  }
-
-  fetchGalleryList = async ({ page, newGallery = false, search = '' }) => {
-    this.setState({ loading: true });
-    try {
-      const data = await getPixabay({ page, q: search });
-      if (data.hits.length !== 0) {
-        newGallery &&
-          this.setState({
-            pixabay: data.hits,
-            page: 2,
-          });
-
-        !newGallery &&
-          this.setState(prevState => ({
-            pixabay: [...prevState.pixabay, ...data.hits],
-            page: prevState.page + 1,
-          }));
-
-        this.setState({
-          status: STATUS.success,
-          loading: false,
+  async componentDidUpdate(_, prevState) {
+    console.log(this.state.page === prevState.page);
+    if (
+      prevState.search !== this.state.search ||
+      prevState.page !== this.state.page
+    ) {
+      this.setState({ loading: true });
+      try {
+        const data = await getPixabay({
+          page: this.state.page,
+          q: this.state.search,
         });
-      } else {
+        const newData = data.hits.map(el => ({
+          id: el.id,
+          largeImageURL: el.largeImageURL,
+          webformatURL: el.webformatURL,
+          tags: el.tags,
+        }));
+        if (newData.length !== 0) {
+          this.setState(prevState => ({
+            pixabay: [...prevState.pixabay, ...newData],
+            status: STATUS.success,
+            loading: false,
+          }));
+        } else {
+          this.setState({
+            loading: false,
+            status: STATUS.error,
+            search: 'Oops!!! Non-existent value.',
+          });
+        }
+      } catch (error) {
+        console.log(error);
         this.setState({
           status: STATUS.error,
-          search: 'Oops!!! Non-existent value.',
+          search: error.message,
+          loading: false,
         });
       }
-    } catch (error) {
-      console.log(error);
-      this.setState({ status: STATUS.error, search: error.message });
     }
-  };
+  }
 
   handleSearch = async search => {
+    if (search === this.state.search) {
+      return;
+    }
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
-    await this.setState({ search });
-    await this.fetchGalleryList({
-      page: 1,
-      newGallery: true,
-      search: this.state.search,
-    });
+    await this.setState({ search, status: STATUS.idle, page: 1, pixabay: [] });
   };
 
-  handleClick = (largeImageURL, tags) => {
+  handleLoadeMore = () => {
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+    console.log(this.state.page);
+  };
+
+  handleOpenModal = (largeImageURL, tags) => {
     this.setState({ modal: { largeImageURL, tags } });
   };
 
@@ -76,22 +85,22 @@ export default class App extends Component {
   };
 
   render() {
-    const { status, pixabay, page, search, modal, loading } = this.state;
+    const { status, pixabay, search, modal, loading } = this.state;
     return (
       <div className="App">
         <Searchbar onSearch={this.handleSearch} />
+
         {status === STATUS.error && <h2>{search}</h2>}
         {status === STATUS.success && (
-          <ImageGallery GalleryList={pixabay} handleClick={this.handleClick} />
+          <>
+            <ImageGallery
+              GalleryList={pixabay}
+              handleClick={this.handleOpenModal}
+            />
+            {!loading && <Button onClick={this.handleLoadeMore} />}
+          </>
         )}
         {loading && <Loader />}
-        {status === STATUS.success && (
-          <Button
-            onClick={() => {
-              this.fetchGalleryList({ page, search: search });
-            }}
-          />
-        )}
         {modal && (
           <Modal onModal={modal} onCloseModal={this.handleCloseModal} />
         )}
