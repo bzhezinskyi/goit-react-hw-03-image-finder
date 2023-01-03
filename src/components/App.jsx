@@ -19,7 +19,6 @@ export default class App extends Component {
   };
 
   async componentDidUpdate(_, prevState) {
-    console.log(this.state.page === prevState.page);
     if (
       prevState.search !== this.state.search ||
       prevState.page !== this.state.page
@@ -73,7 +72,6 @@ export default class App extends Component {
     this.setState(prevState => ({
       page: prevState.page + 1,
     }));
-    console.log(this.state.page);
   };
 
   handleOpenModal = (largeImageURL, tags) => {
